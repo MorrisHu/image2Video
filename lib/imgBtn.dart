@@ -44,8 +44,6 @@ class _ImgBtnState extends State<ImgBtn> {
     Map<Permission, PermissionStatus> statuses = await [
       Permission.storage,
     ].request();
-
-    final info = statuses[Permission.storage].toString();
   }
 
   Future<void> _press() async {
@@ -68,39 +66,16 @@ class _ImgBtnState extends State<ImgBtn> {
     }
     mTimer.start('图片写入&压缩');
     String fps = _fpxController.text == '' ? '10' : _fpxController.text;
-    int fpsInt = int.parse(fps);
-    int n = 0;
-
-    Future image2v(g) async {
-      FFmpegKit.execute('-r $fps -f image2 -i $dir/$g-%d.jpg $dir/cache$g.mpg')
-          .then((session) async {
-        mTimer.start('合成视频$g');
-        final returnCode = await session.getReturnCode();
-        if (ReturnCode.isSuccess(returnCode)) {
-          print('SUCCESS');
-        } else if (ReturnCode.isCancel(returnCode)) {
-          print('CANCEL');
-        } else {
-          print('ERROR');
-        }
-      });
-    }
 
     for (var i = 0; i < num; i++) {
       int k = i % 52;
-      var m = n;
-      n = i ~/ 52;
-      if (m != n && i != num - 1) {
-        await image2v(m);
-      }
-      await writeToFile(bts[k], '$dir/$n-$i.jpg');
+      await writeToFile(bts[k], '$dir/fs$i.jpg');
       if (i == num - 1) {
         await FFmpegKit.execute(
-            '-i $dir/in-$i.jpg -vf scale=-1:720 -q 75 $dir/$n-$i.jpg');
-        await image2v(n);
+            '-i $dir/fs$i.jpg -vf scale=-1:720 -q 75 $dir/$i.jpg');
       } else {
         FFmpegKit.execute(
-            '-i $dir/in-$i.jpg -vf scale=-1:720 -q 75 $dir/$n-$i.jpg');
+            '-i $dir/fs$i.jpg -vf scale=-1:720 -q 75 $dir/$i.jpg');
       }
     }
 
@@ -108,13 +83,8 @@ class _ImgBtnState extends State<ImgBtn> {
     String videoPath = '$dir/output1.mp4';
     // print('$videoPath');
     try {
-      // FFmpegKit.execute('-r $fps -f image2 -i $dir/%d.jpg $videoPath')
-      String sss = '$dir/0.mpg';
-      for (var i = 1; i < n; i++) {
-        sss += '$dir/cache$i.mpg';
-      }
-      String cmd = '-i concat:$sss -c copy $videoPath';
-      FFmpegKit.execute(cmd).then((session) async {
+      FFmpegKit.execute('-r $fps -f image2 -i $dir/%d.jpg $videoPath')
+          .then((session) async {
         mTimer.start('保存视频');
         final returnCode = await session.getReturnCode();
         print('session: $session');
