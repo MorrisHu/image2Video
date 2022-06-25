@@ -8,6 +8,7 @@ import 'package:ffmpeg_kit_flutter/ffmpeg_kit.dart';
 import 'package:ffmpeg_kit_flutter/return_code.dart';
 import 'package:image_gallery_saver/image_gallery_saver.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'file.dart';
 import 'method.dart';
 
 class ImgBtn extends StatefulWidget {
@@ -26,7 +27,7 @@ class _ImgBtnState extends State<ImgBtn> {
   FocusNode focusNode2 = FocusNode();
 
   @override
-  void initState() {
+  void initState() async {
     super.initState();
 
     _requestPermission();
@@ -38,6 +39,8 @@ class _ImgBtnState extends State<ImgBtn> {
       });
     });
     _fpxController.text = '10';
+    String dir = (await getTemporaryDirectory()).path;
+    FileManager().reset(dir);
   }
 
   _requestPermission() async {
